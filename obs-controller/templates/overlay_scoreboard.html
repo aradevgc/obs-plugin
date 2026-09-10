@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puntuaciones OBS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: transparent;
+            padding: 20px;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #scoreboard {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .team {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 10px;
+            min-width: 400px;
+        }
+        .team-name {
+            font-weight: bold;
+        }
+        .team-score {
+            font-size: 1.5em;
+            font-weight: bold;
+            min-width: 60px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div id="scoreboard"></div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+
+        socket.on('scoreboard_update', (data) => {
+            const container = document.getElementById('scoreboard');
+            container.innerHTML = '';
+            
+            data.teams.forEach(team => {
+                const teamEl = document.createElement('div');
+                teamEl.className = 'team';
+                teamEl.innerHTML = `
+                    <span class="team-name">${team.name}</span>
+                    <span class="team-score">${team.score}</span>
+                `;
+                teamEl.style.color = data.style.color;
+                teamEl.style.fontFamily = data.style.font;
+                teamEl.querySelector('.team-name').style.fontSize = data.style.fontSize + 'px';
+                teamEl.querySelector('.team-score').style.fontSize = (data.style.fontSize * 1.3) + 'px';
+                container.appendChild(teamEl);
+            });
+        });
+    </script>
+</body>
+</html>

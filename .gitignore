@@ -1,5 +1,31 @@
-node_modules/
-.next/
-dist/
+```
+# Compressed files
+*.zip
+
+# Dependencies
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+
+# Build artifacts
 build/
+dist/
+*.egg-info/
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
+.vscode/
+.idea/
+
+# Logs and temp files
 *.log
+*.tmp
+```node_modules/
+.next/

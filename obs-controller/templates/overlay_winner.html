@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ganador OBS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #winner-container {
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        #winner-container.visible {
+            opacity: 1;
+        }
+        #winner-name {
+            font-weight: bold;
+            text-transform: uppercase;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+        }
+        #winner-label {
+            font-size: 0.4em;
+            opacity: 0.8;
+            margin-bottom: 20px;
+            letter-spacing: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="winner-container">
+        <div id="winner-label">🏆 GRAN GANADOR 🏆</div>
+        <div id="winner-name"></div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+
+        socket.on('winner_update', (data) => {
+            const container = document.getElementById('winner-container');
+            const nameEl = document.getElementById('winner-name');
+            
+            nameEl.textContent = data.name;
+            nameEl.style.color = data.style.color;
+            nameEl.style.fontFamily = data.style.font;
+            nameEl.style.fontSize = data.style.fontSize + 'px';
+            
+            if (data.visible) {
+                container.classList.add('visible');
+            } else {
+                container.classList.remove('visible');
+            }
+        });
+    </script>
+</body>
+</html>
