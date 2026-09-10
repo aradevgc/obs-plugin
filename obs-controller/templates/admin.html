@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBS Controller - Panel de Control</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 30px; color: #00d9ff; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 30px; justify-content: center; }
+        .tab-btn {
+            padding: 12px 30px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .tab-btn:hover, .tab-btn.active { background: #00d9ff; color: #1a1a2e; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .panel {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .panel h2 { margin-bottom: 20px; color: #00d9ff; }
+        .control-group { margin-bottom: 20px; }
+        .control-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input[type="text"], input[type="number"], input[type="color"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 5px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 14px;
+        }
+        input[type="color"] { height: 50px; cursor: pointer; }
+        button {
+            padding: 12px 25px;
+            background: #00d9ff;
+            border: none;
+            border-radius: 8px;
+            color: #1a1a2e;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,217,255,0.4); }
+        button.danger { background: #ff4757; color: #fff; }
+        button.success { background: #2ed573; color: #fff; }
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+        .team-row {
+            display: grid;
+            grid-template-columns: 1fr 100px 100px;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .links-panel {
+            background: rgba(0,217,255,0.1);
+            border: 2px solid #00d9ff;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .link-item {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
+        .link-item code { color: #00d9ff; font-size: 14px; }
+        .preview-box {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 OBS Controller</h1>
+        
+        <div class="links-panel">
+            <h2>🔗 Enlaces para OBS (Browser Source)</h2>
+            <div class="link-item">
+                <strong>Cronómetro:</strong><br>
+                <code id="timer-link">http://localhost:5000/overlay/timer</code>
+            </div>
+            <div class="link-item">
+                <strong>Puntuaciones:</strong><br>
+                <code id="scoreboard-link">http://localhost:5000/overlay/scoreboard</code>
+            </div>
+            <div class="link-item">
+                <strong>Ganador:</strong><br>
+                <code id="winner-link">http://localhost:5000/overlay/winner</code>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('timer')">⏱️ Cronómetro</button>
+            <button class="tab-btn" onclick="showTab('scoreboard')">📊 Puntuaciones</button>
+            <button class="tab-btn" onclick="showTab('winner')">🏆 Ganador</button>
+        </div>
+
+        <!-- Timer Tab -->
+        <div id="timer" class="tab-content active">
+            <div class="panel">
+                <h2>Control del Cronómetro</h2>
+                <div class="btn-group">
+                    <button onclick="timerAction('start')" class="success">▶️ Iniciar</button>
+                    <button onclick="timerAction('pause')" class="danger">⏸️ Pausar</button>
+                    <button onclick="timerAction('reset')">🔄 Resetear</button>
+                </div>
+                <div class="control-group" style="margin-top: 20px;">
+                    <label>Tiempo (segundos):</label>
+                    <input type="number" id="timer-time" value="60" onchange="updateTimer()">
+                </div>
+            </div>
+            <div class="panel">
+                <h2>Estilo del Cronómetro</h2>
+                <div class="control-group">
+                    <label>Color:</label>
+                    <input type="color" id="timer-color" value="#ffffff" onchange="updateTimerStyle()">
+                </div>
+                <div class="control-group">
+                    <label>Forma:</label>
+                    <select id="timer-shape" onchange="updateTimerStyle()">
+                        <option value="square">Cuadrado</option>
+                        <option value="rounded">Redondeado</option>
+                        <option value="circle">Círculo</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Tipografía:</label>
+                    <select id="timer-font" onchange="updateTimerStyle()">
+                        <option value="Arial">Arial</option>
+                        <option value="Impact">Impact</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Verdana">Verdana</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Tamaño de Fuente:</label>
+                    <input type="number" id="timer-fontsize" value="72" onchange="updateTimerStyle()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Scoreboard Tab -->
+        <div id="scoreboard" class="tab-content">
+            <div class="panel">
+                <h2>Equipos</h2>
+                <div id="teams-container"></div>
+                <div class="btn-group">
+                    <button onclick="addTeam()" class="success">➕ Añadir Equipo</button>
+                </div>
+            </div>
+            <div class="panel">
+                <h2>Estilo de Puntuaciones</h2>
+                <div class="control-group">
+                    <label>Color:</label>
+                    <input type="color" id="scoreboard-color" value="#ffffff" onchange="updateScoreboardStyle()">
+                </div>
+                <div class="control-group">
+                    <label>Tipografía:</label>
+                    <select id="scoreboard-font" onchange="updateScoreboardStyle()">
+                        <option value="Arial">Arial</option>
+                        <option value="Impact">Impact</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Verdana">Verdana</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Tamaño de Fuente:</label>
+                    <input type="number" id="scoreboard-fontsize" value="48" onchange="updateScoreboardStyle()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Winner Tab -->
+        <div id="winner" class="tab-content">
+            <div class="panel">
+                <h2>Control del Ganador</h2>
+                <div class="control-group">
+                    <label>Nombre del Ganador:</label>
+                    <input type="text" id="winner-name" value="Gran Ganador" oninput="updateWinner()">
+                </div>
+                <div class="btn-group">
+                    <button onclick="setWinnerVisible(true)" class="success">👁️ Mostrar</button>
+                    <button onclick="setWinnerVisible(false)" class="danger">🙈 Ocultar</button>
+                </div>
+            </div>
+            <div class="panel">
+                <h2>Estilo del Ganador</h2>
+                <div class="control-group">
+                    <label>Color:</label>
+                    <input type="color" id="winner-color" value="#ffd700" onchange="updateWinnerStyle()">
+                </div>
+                <div class="control-group">
+                    <label>Tipografía:</label>
+                    <select id="winner-font" onchange="updateWinnerStyle()">
+                        <option value="Arial">Arial</option>
+                        <option value="Impact">Impact</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Verdana">Verdana</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Tamaño de Fuente:</label>
+                    <input type="number" id="winner-fontsize" value="96" onchange="updateWinnerStyle()">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+        let state = {};
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        async function apiCall(endpoint, data) {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            return response.json();
+        }
+
+        // Timer functions
+        function timerAction(action) {
+            apiCall('/api/timer', {action});
+        }
+
+        function updateTimer() {
+            apiCall('/api/timer', {time: document.getElementById('timer-time').value});
+        }
+
+        function updateTimerStyle() {
+            apiCall('/api/timer', {
+                style: {
+                    color: document.getElementById('timer-color').value,
+                    shape: document.getElementById('timer-shape').value,
+                    font: document.getElementById('timer-font').value,
+                    fontSize: parseInt(document.getElementById('timer-fontsize').value)
+                }
+            });
+        }
+
+        // Scoreboard functions
+        async function loadTeams() {
+            const response = await fetch('/api/state');
+            state = await response.json();
+            renderTeams();
+        }
+
+        function renderTeams() {
+            const container = document.getElementById('teams-container');
+            container.innerHTML = '';
+            state.scoreboard.teams.forEach((team, idx) => {
+                container.innerHTML += `
+                    <div class="team-row">
+                        <input type="text" value="${team.name}" onchange="updateTeamName(${idx}, this.value)">
+                        <span style="text-align:center;font-size:24px;">${team.score}</span>
+                        <div style="display:flex;gap:5px;">
+                            <button onclick="updateScore(${idx}, -1)">-</button>
+                            <button onclick="updateScore(${idx}, 1)">+</button>
+                            <button onclick="removeTeam(${idx})" class="danger">×</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function addTeam() {
+            const name = prompt('Nombre del equipo:');
+            if (name) apiCall('/api/scoreboard', {add_team: name}).then(loadTeams);
+        }
+
+        function removeTeam(idx) {
+            apiCall('/api/scoreboard', {remove_team: idx}).then(loadTeams);
+        }
+
+        function updateScore(idx, delta) {
+            apiCall('/api/scoreboard', {update_score: {index: idx, delta}}).then(loadTeams);
+        }
+
+        function updateTeamName(idx, name) {
+            state.scoreboard.teams[idx].name = name;
+            apiCall('/api/scoreboard', {teams: state.scoreboard.teams});
+        }
+
+        function updateScoreboardStyle() {
+            apiCall('/api/scoreboard', {
+                style: {
+                    color: document.getElementById('scoreboard-color').value,
+                    font: document.getElementById('scoreboard-font').value,
+                    fontSize: parseInt(document.getElementById('scoreboard-fontsize').value)
+                }
+            });
+        }
+
+        // Winner functions
+        function updateWinner() {
+            apiCall('/api/winner', {name: document.getElementById('winner-name').value});
+        }
+
+        function setWinnerVisible(visible) {
+            apiCall('/api/winner', {visible});
+        }
+
+        function updateWinnerStyle() {
+            apiCall('/api/winner', {
+                style: {
+                    color: document.getElementById('winner-color').value,
+                    font: document.getElementById('winner-font').value,
+                    fontSize: parseInt(document.getElementById('winner-fontsize').value)
+                }
+            });
+        }
+
+        // Socket listeners
+        socket.on('connect', () => loadTeams());
+        socket.on('scoreboard_update', loadTeams);
+
+        // Update links with actual IP
+        fetch('/api/state').then(r => r.json()).then(() => {
+            const ip = window.location.hostname;
+            document.getElementById('timer-link').textContent = `http://${ip}:5000/overlay/timer`;
+            document.getElementById('scoreboard-link').textContent = `http://${ip}:5000/overlay/scoreboard`;
+            document.getElementById('winner-link').textContent = `http://${ip}:5000/overlay/winner`;
+        });
+    </script>
+</body>
+</html>

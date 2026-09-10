@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronómetro OBS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #timer-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        #timer {
+            font-weight: bold;
+            line-height: 1;
+        }
+        .square { }
+        .rounded { border-radius: 20px; padding: 20px; background: rgba(0,0,0,0.5); }
+        .circle { 
+            border-radius: 50%; 
+            width: 300px; 
+            height: 300px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            background: rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="timer-container">
+        <div id="timer" class="square">00:00</div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+        let timerInterval = null;
+        let currentTime = 0;
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateDisplay() {
+            document.getElementById('timer').textContent = formatTime(currentTime);
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (currentTime > 0) {
+                    currentTime--;
+                    updateDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            updateDisplay();
+        }
+
+        socket.on('timer_update', (data) => {
+            const timerEl = document.getElementById('timer');
+            const containerEl = document.getElementById('timer-container');
+            
+            // Update time
+            currentTime = data.time;
+            updateDisplay();
+            
+            // Update style
+            timerEl.style.color = data.style.color;
+            timerEl.style.fontFamily = data.style.font;
+            timerEl.style.fontSize = data.style.fontSize + 'px';
+            
+            // Update shape
+            containerEl.className = '';
+            timerEl.className = data.style.shape;
+            
+            // Handle actions
+            if (data.active) {
+                startTimer();
+            } else {
+                pauseTimer();
+            }
+        });
+    </script>
+</body>
+</html>
